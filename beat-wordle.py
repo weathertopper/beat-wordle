@@ -12,19 +12,44 @@ def buildWordleList():
     return list(wordle_list)
 
 def getKnownWordleAsList():
-    return list(sys.argv[1].upper())
+    known_wordle=[]
+    while not known_wordle:
+        input_known_wordle = input("Known WORDLE (with - for unknown letters):\n")
+        if len(input_known_wordle) != 5:
+            print("ERROR: WORDLE must be 5 characters long.")
+            continue
+        known_wordle=list(input_known_wordle.upper())
+    return known_wordle
 
 def getIncludedLettersAsList():
-    if len(sys.argv) > 2 :
-        return list(sys.argv[2].upper())
-    return []
+    included_letters=[]
+    input_included_letters = input("Included letters (in no particular order):\n")
+    if len(input_included_letters) > 0:
+        included_letters=list(input_included_letters.upper())
+    return included_letters
 
-def getExcludedLettersAsList():
-    if len(sys.argv) > 3 :
-        return list(sys.argv[3].upper())
-    return []
+def getExcludedLettersAsList(known_wordle, included_letters, previous_guesses):
+    excluded_letters=[]
+    for guess in previous_guesses:
+        for char in guess:
+            if char not in known_wordle and char not in included_letters:
+                excluded_letters.append(char)
+    return excluded_letters
 
-def getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters):
+def getPreviousGuessesAsListOfLists():
+    previous_guesses = []
+    while True:
+        input_guess = input("Previous guess (press enter to continue):\n")
+        if not input_guess:
+            break
+        if len(input_guess) != 5:
+            print("ERROR: WORDLE must be 5 characters long.")
+            continue
+        guess = list(input_guess.upper())
+        previous_guesses.append(guess)
+    return previous_guesses
+
+def getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters, previous_guesses):
     candidates = []
     for word in wordle_list:
         included_letters_checklist = copy.deepcopy(included_letters)
@@ -39,6 +64,10 @@ def getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_le
                 break
             if char in included_letters_checklist:
                 included_letters_checklist.remove(char)
+                for previous_guess in previous_guesses:
+                    if char == previous_guess[i]: # wrong position
+                        legit_word = False
+                        break
         if not legit_word or len(included_letters_checklist) > 0:
             continue
         candidates.append(word.upper())
@@ -53,11 +82,13 @@ def printResults(wordle_candidates):
 
 # DRIVER
 def main():
+
     wordle_list = buildWordleList()
     known_wordle = getKnownWordleAsList()
     included_letters = getIncludedLettersAsList()
-    excluded_letters = getExcludedLettersAsList()
-    wordle_candidates = getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters)
+    previous_guesses = getPreviousGuessesAsListOfLists()
+    excluded_letters = getExcludedLettersAsList(known_wordle, included_letters, previous_guesses)
+    wordle_candidates = getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters, previous_guesses)
     printResults(wordle_candidates)
 
 if __name__ == "__main__":
