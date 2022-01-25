@@ -36,10 +36,10 @@ def getExcludedLettersAsList(known_wordle, included_letters, previous_guesses):
                 excluded_letters.append(char)
     return excluded_letters
 
-def getPreviousGuessesAsListOfLists():
-    previous_guesses = []
+def getPreviousGuessesAsListOfLists(previous_guesses, first_try):
     while True:
-        input_guess = input("Previous guess (press enter to continue):\n")
+        input_prompt = "Previous guess (press enter to continue):\n" if first_try else "Last guess (press enter to continue):\n"
+        input_guess = input(input_prompt)
         if not input_guess:
             break
         if len(input_guess) != 5:
@@ -47,6 +47,8 @@ def getPreviousGuessesAsListOfLists():
             continue
         guess = list(input_guess.upper())
         previous_guesses.append(guess)
+        if not first_try:
+            break
     return previous_guesses
 
 def getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters, previous_guesses):
@@ -73,23 +75,45 @@ def getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_le
         candidates.append(word.upper())
     return candidates
 
-
 def printResults(wordle_candidates):
     print(' -------------------')
     print('| WORDLE CANDIDATES |')
     print(' -------------------')
     print("\n".join(wordle_candidates))
 
+def getSuccess():
+    input_success = input("Did you get it? (Y/N):\n")
+    return input_success.upper() == "Y"
+
+def printTryAgain():
+    print(' ------------')
+    print('| TRY AGAIN! |')
+    print(' ------------')
+
+def printCongrats():
+    print(' ------------')
+    print('| GREAT JOB! |')
+    print('-------------')
+
 # DRIVER
 def main():
 
     wordle_list = buildWordleList()
-    known_wordle = getKnownWordleAsList()
-    included_letters = getIncludedLettersAsList()
-    previous_guesses = getPreviousGuessesAsListOfLists()
-    excluded_letters = getExcludedLettersAsList(known_wordle, included_letters, previous_guesses)
-    wordle_candidates = getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters, previous_guesses)
-    printResults(wordle_candidates)
+    previous_guesses = []
+    first_try = True
+    while True:
+        if not first_try:
+            printTryAgain()
+        known_wordle = getKnownWordleAsList()
+        included_letters = getIncludedLettersAsList()
+        previous_guesses = getPreviousGuessesAsListOfLists(previous_guesses, first_try)
+        excluded_letters = getExcludedLettersAsList(known_wordle, included_letters, previous_guesses)
+        wordle_candidates = getWordleCandidates(wordle_list, known_wordle, included_letters, excluded_letters, previous_guesses)
+        printResults(wordle_candidates)
+        if getSuccess():
+            break
+        first_try=False
+    printCongrats()
 
 if __name__ == "__main__":
     main()
